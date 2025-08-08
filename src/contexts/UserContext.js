@@ -12,13 +12,17 @@ export const UserProvider = ({ children }) => {
         xp: 0,
         loading: true
     });
+    const [history, setHistory] = useState([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
 
+    // Load user details
     const loadUser = async (id) => {
         try {
             const res = await api.get(`/user/${id}`);
-            if (res.data && res.data.data) {
+            if (res.data?.data) {
                 setUser({ ...res.data.data, loading: false });
             } else {
+                // fallback if no API data
                 setUser({
                     id,
                     name: `Player ${id}`,
@@ -39,14 +43,31 @@ export const UserProvider = ({ children }) => {
         }
     };
 
+    // Load unlock history
+    const loadHistory = async (id) => {
+        setHistoryLoading(true);
+        try {
+            const res = await api.get(`/history/${id}`);
+            setHistory(res.data?.data || []);
+        } catch (err) {
+            console.error('Failed to load history:', err);
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
+    // Refresh both user and history when switching player
     useEffect(() => {
         loadUser(userId);
+        loadHistory(userId);
     }, [userId]);
 
+    // Switch player
     const switchUser = (id) => {
         setUserId(id);
     };
 
+    // Add tokens to user
     const addTokens = async (amount) => {
         try {
             const res = await api.post(`/user/${user.id}/add-tokens`, { amount });
@@ -64,8 +85,21 @@ export const UserProvider = ({ children }) => {
         }
     };
 
+    // Public method to refresh history manually (e.g. after unlock)
+    const refreshHistory = () => {
+        loadHistory(user.id);
+    };
+
     return (
-        <UserContext.Provider value={{ user, setUser, switchUser, addTokens }}>
+        <UserContext.Provider value={{
+            user,
+            setUser,
+            switchUser,
+            addTokens,
+            history,
+            historyLoading,
+            refreshHistory
+        }}>
             {children}
         </UserContext.Provider>
     );

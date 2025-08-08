@@ -5,7 +5,8 @@ import RedFlagModal from './RedFlagModal';
 import { UserContext } from '../contexts/UserContext';
 
 export default function CoachList() {
-    const { user, setUser, switchUser, addTokens } = useContext(UserContext);
+    const { user, setUser, switchUser, addTokens, refreshHistory } = useContext(UserContext);
+
     const [coaches, setCoaches] = useState([]);
     const [loading, setLoading] = useState(false);
     const [modalCoach, setModalCoach] = useState(null);
@@ -43,8 +44,22 @@ export default function CoachList() {
             const res = await api.post('/unlock', { userId: user.id, coachId: coach.id });
             if (res.data.success) {
                 const returnData = res.data.data;
-                setUser(prev => ({ ...prev, tokens: returnData.user.tokens, xp: returnData.user.xp }));
-                setCoaches(prev => prev.map(c => c.id === coach.id ? { ...c, unlocked: 1 } : c));
+
+                // ✅ Update user XP and tokens
+                setUser(prev => ({
+                    ...prev,
+                    tokens: returnData.user.tokens,
+                    xp: returnData.user.xp
+                }));
+
+                // ✅ Mark coach as unlocked locally
+                setCoaches(prev => prev.map(c =>
+                    c.id === coach.id ? { ...c, unlocked: 1 } : c
+                ));
+
+                // ✅ Refresh history so HistoryTable updates instantly
+                refreshHistory();
+
             } else {
                 alert(res.data.message || 'Unlock failed');
             }
@@ -54,6 +69,7 @@ export default function CoachList() {
             setProcessing(false);
         }
     }
+
 
     function handleModalConfirm() {
         if (modalCoach) {
@@ -77,18 +93,18 @@ export default function CoachList() {
                         <option value={2}>Player 2</option>
                     </select>
                 </div>
-              <button
-    onClick={async () => {
-        const success = await addTokens(25);
-        if (success) {
-            alert('✅ Tokens added successfully!');
-        } else {
-            alert('❌ Failed to add tokens.');
-        }
-    }}
->
-    +25 Tokens
-</button>
+                <button
+                    onClick={async () => {
+                        const success = await addTokens(5);
+                        if (success) {
+                            alert('✅ Tokens added successfully!');
+                        } else {
+                            alert('❌ Failed to add tokens.');
+                        }
+                    }}
+                >
+                    + 5 Tokens
+                </button>
 
                 <span style={{ marginLeft: 'auto' }}>
                     <strong>{user.name}</strong> • Tokens: {user.tokens} • XP: {user.xp}
