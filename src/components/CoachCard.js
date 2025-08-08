@@ -1,4 +1,3 @@
-// src/components/CoachCard.js
 import React from 'react';
 
 export default function CoachCard({ coach, onUnlockClick, disabled }) {

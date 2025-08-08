@@ -1,4 +1,3 @@
-// src/components/RedFlagModal.js
 import React from 'react';
 
 export default function RedFlagModal({ open, coach, onConfirm, onCancel }) {

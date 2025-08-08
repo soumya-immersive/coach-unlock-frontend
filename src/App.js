@@ -1,4 +1,3 @@
-// src/App.js
 import React from 'react';
 import { UserProvider } from './contexts/UserContext';
 import CoachList from './components/CoachList';
